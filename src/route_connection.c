@@ -15,7 +15,7 @@ This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS O
  * applied to client query.
  */
 
-#include <Python.h>
+#include <python2.7/Python.h>
 #include "bouncer.h"
 #include <usual/pgutil.h>
 

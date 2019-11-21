@@ -14,7 +14,7 @@ This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS O
  * pgbouncer-rr extension: call external python function
  */
 
-#include <Python.h>
+#include <python2.7/Python.h>
 #include "bouncer.h"
 #include <usual/pgutil.h>
 
