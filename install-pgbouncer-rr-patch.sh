@@ -28,57 +28,7 @@ PGDIR=$1
 PATCHDIR=$(pwd)
 patchstatus=0
 
-# Patch each modified file
-MERGEFILES="\
-   Makefile\
-   src/client.c\
-   src/main.c\
-   include/bouncer.h\
-   "
-for file in $MERGEFILES
-do
-   echo Merging pgbouncer-rr changes to: $PGDIR/$file
-   patch -d $PGDIR -f -b -p1 < $PATCHDIR/$file.diff || patchstatus=1
-done
+echo Merging pgbouncer-rr changes to: $PGDIR/src/client.c
+patch -d $PGDIR -f -b -p1 < $PATCHDIR/src/client.c.diff || patchstatus=1
 
-
-# copy pgbouncer-rr source files
-mkdir -p $PGDIR/images
-NEWFILES="\
-   README.md\
-   LICENSE.txt\
-   NOTICE.txt\
-   pgbouncer-example.ini\
-   users.txt\
-   rewrite_query.py\
-   routing_rules.py\
-   images/diagram1.jpg\
-   images/diagram2-routing.jpg\
-   images/diagram3-rewrite.jpg\
-   src/pycall.c\
-   src/rewrite_query.c\
-   src/route_connection.c\
-   include/pycall.h\
-   include/rewrite_query.h\
-   include/route_connection.h\
-   "
-echo -n "copying pgbouncer-rr files: "
-for file in $NEWFILES
-do
-   echo -n "$file "
-   cp $PATCHDIR/$file $PGDIR/$file || patchstatus=1
-done
-echo
-
-if [ $patchstatus -eq 1 ]; then
-   echo "Failures encountered during merge of pgbouncer-rr with pgbouncer."
-   echo "See error messages above."
-   echo "Possible causes: "
-   echo "   pgbouncer-rr-patch already installed in target directory?"
-   echo "   incompatible version of pgbouncer with changed source files that can't be patched?"
-   echo "      - last updated and tested with pgbouncer v1.9.0"
-   echo "Status: pgbouncer-rr-patch merge FAILED"
-else
-   echo "Status: pgbouncer-rr-patch merge SUCEEDED"
-fi
 exit $patchstatus
