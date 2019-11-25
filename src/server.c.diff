@@ -1,0 +1,68 @@
+diff --git a/src/server.c b/src/server.c
+index acaa9a1..1418e4e 100644
+--- a/src/server.c
++++ b/src/server.c
+@@ -228,6 +228,12 @@
+ 	SBuf *sbuf = &server->sbuf;
+ 	PgSocket *client = server->link;
+ 	bool async_response = false;
++	char *pkt_start;
++	char *query_str;
++	char select_query[6];
++	char *dbname;
++	PgDatabase *db;
++	PgPool *pool;
+ 
+ 	Assert(!server->pool->db->admin);
+ 
+@@ -340,6 +346,50 @@
+ 	case 'T':		/* RowDescription */
+ 		break;
+ 	}
++
++	pkt_start = (char *) &sbuf->io->buf[sbuf->io->parse_pos];
++	/* printHex(pkt_start, pkt->len); */
++
++	if (pkt->type == 'Q') {
++		query_str = (char *) pkt_start + 5;
++	} else if (pkt->type == 'P') {
++		char *stmt_str = pkt_start + 5;
++		query_str = stmt_str + strlen(stmt_str) + 1;
++	} else {
++		fatal("Invalid packet type - expected Q or P, got %c", pkt->type);
++	}
++
++	for(int i = 0; i < 6; i++){
++		select_query[i] = tolower(query_str[i]);
++	}
++
++	dbname = strstr(select_query, "select") == select_query ? "rreplica" : "master";
++
++	db = find_database(dbname);
++	if (db == NULL) {
++		slog_error(client, "nonexistant database key <%s>, check ini", dbname);
++		free(dbname);
++		return false;
++	}
++
++	pool = get_pool(db, client->auth_user);
++	if (client->pool != pool) {
++		if (client->link != NULL) {
++			/* release existing server connection back to pool */
++			slog_debug(client, "releasing existing server connection");
++			release_server(client->link);
++			client->link = NULL;
++		}
++		/* assign client to new pool */
++		slog_debug(client,
++				"assigning client to connection pool for database <%s>",
++				dbname);
++		client->pool = pool;
++	} else {
++		slog_debug(client, "already connected to pool <%s>", dbname);
++	}
++	free(dbname);
++
+ 	server->idle_tx = idle_tx;
+ 	server->ready = ready;
+ 	server->pool->stats.server_bytes += pkt->len;

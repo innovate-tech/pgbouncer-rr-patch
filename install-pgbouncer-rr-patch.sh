@@ -28,7 +28,7 @@ PGDIR=$1
 PATCHDIR=$(pwd)
 patchstatus=0
 
-echo Merging pgbouncer-rr changes to: $PGDIR/src/client.c
-patch -d $PGDIR -f -b -p1 < $PATCHDIR/src/client.c.diff || patchstatus=1
+echo Merging pgbouncer-rr changes to: $PGDIR/src/server.c
+patch -d $PGDIR -f -b -p1 < $PATCHDIR/src/server.c.diff || patchstatus=1
 
 exit $patchstatus
